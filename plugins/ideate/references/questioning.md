@@ -56,13 +56,85 @@ When the user describes something that might already exist or has established pa
 - "This domain has known patterns — let me research best practices."
 - "There might be prior art here worth examining."
 
-## Question Format
+## Question Format (AskUserQuestion)
 
-- **One question at a time** — don't overwhelm
-- **Multiple choice when possible** — easier to react to than open-ended
-- **2-4 options max** — always include a freeform "Let me explain" option
-- **Build on previous answers** — each question should follow from what they just said
-- **Use the 4-then-check pattern** — ask 4 questions about a topic, then check if they want to go deeper or move on
+**All questions to the user MUST use the `AskUserQuestion` tool** with exactly 1 question per call. This mechanically enforces one-question-at-a-time and structures responses for easier decision-making.
+
+**Parameters:**
+- `header` — Short label, max 12 characters (e.g., "Scope", "Users", "Priority")
+- `question` — The actual question text. Build on what the user just said.
+- `options` — 2-4 concrete choices with `label` and `description`. The tool auto-adds "Other" for freeform input.
+- `multiSelect` — Usually `false`. Use `true` only when choices aren't mutually exclusive.
+
+**Good options:**
+- Interpretations of what they might mean (reveals their actual intent)
+- Concrete choices that force a priority decision
+- Specific examples to confirm or deny
+
+**Bad options:**
+- Generic categories ("Technical", "Business", "Other")
+- Leading options that presume an answer
+- Options that all say the same thing in different words
+
+**When NOT to use AskUserQuestion:**
+- Sharing synthesis or summaries → plain text
+- Presenting research findings → plain text
+- Explaining your reasoning → plain text
+- Only QUESTIONS use AskUserQuestion
+
+### Examples
+
+**Challenging vagueness** — user says "it needs to be scalable":
+- header: "Scale"
+- question: "Scalable to what? Help me understand the target."
+- options:
+  - label: "Hundreds of users" / description: "Small team or internal tool scale"
+  - label: "Thousands of users" / description: "Product with real traction"
+  - label: "Just me, big data" / description: "Single user but heavy computation"
+
+**Making abstract concrete** — user describes a complex workflow:
+- header: "Walkthrough"
+- question: "Walk me through using this from the very first step. What do you do?"
+- options:
+  - label: "Open the app and..." / description: "Start from the UI entry point"
+  - label: "Run a command..." / description: "Start from the CLI"
+  - label: "It triggers on..." / description: "Start from an event/webhook"
+
+**Finding gaps** — user hasn't mentioned error handling:
+- header: "Failures"
+- question: "What happens when things go wrong?"
+- options:
+  - label: "Retry automatically" / description: "System recovers without user action"
+  - label: "Show error to user" / description: "User sees what failed and can fix it"
+  - label: "It shouldn't fail" / description: "The design prevents this — let me explain"
+
+**Devil's advocate:**
+- header: "Challenge"
+- question: "What's the strongest argument against building this?"
+- options:
+  - label: "Already solved" / description: "Something existing does this well enough"
+  - label: "Too complex" / description: "The effort outweighs the benefit"
+  - label: "No real demand" / description: "Users won't actually want this"
+
+### 4-Then-Check Pattern
+
+After 4 AskUserQuestion calls on a topic:
+- header: "Direction"
+- question: "Want to go deeper on [topic], or move on? (Remaining areas: [list])"
+- options:
+  - label: "Go deeper" / description: "More questions on [topic]"
+  - label: "Move on" / description: "Probe the next area"
+  - label: "Done questioning" / description: "I think we've covered enough"
+
+### Research Interruption Pattern
+
+When a user response triggers mid-interrogation research:
+1. Acknowledge what they said (plain text)
+2. Spawn the researcher agent
+3. Share findings (plain text)
+4. Resume questioning with AskUserQuestion, incorporating findings into the next question
+
+Never call AskUserQuestion while research is pending.
 
 ## Context Checklist (Mental, Not Asked Aloud)
 
