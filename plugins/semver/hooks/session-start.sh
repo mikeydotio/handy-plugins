@@ -61,6 +61,24 @@ AUTO_BUMP_STATUS="off"
 
 MSG="[semver] Version: ${CURRENT_VERSION} | ${TAG_INFO} | Auto-bump: ${AUTO_BUMP_STATUS}"
 
+# --- Lightweight sync check ---
+DESYNC_WARNING=""
+
+if [[ -n "$LAST_TAG" ]]; then
+  # Check: does VERSION content match the latest tag?
+  if [[ "$CURRENT_VERSION" != "$LAST_TAG" ]]; then
+    DESYNC_WARNING=" [!DESYNC] VERSION says ${CURRENT_VERSION} but latest tag is ${LAST_TAG} — run /semver validate"
+  fi
+elif [[ "$CURRENT_VERSION" != "not set" ]]; then
+  # VERSION exists but no tag at all
+  TAG_CHECK="$(git -C "$PROJECT_DIR" tag -l "$CURRENT_VERSION" 2>/dev/null || echo "")"
+  if [[ -z "$TAG_CHECK" ]]; then
+    DESYNC_WARNING=" [!NO_TAG] No git tag found for ${CURRENT_VERSION} — run /semver validate"
+  fi
+fi
+
+MSG="${MSG}${DESYNC_WARNING}"
+
 # Escape for JSON
 MSG="$(printf '%s' "$MSG" | sed 's/"/\\"/g')"
 printf '{"systemMessage":"%s"}\n' "$MSG"

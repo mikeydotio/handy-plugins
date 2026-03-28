@@ -116,7 +116,8 @@ When generating a changelog entry for a bump, Claude should:
 
 1. Run `git log <last-tag>..HEAD --format="%h %s"` to get commits since last tag
 2. Read the diffs if commit messages are unclear: `git diff <last-tag>..HEAD --stat`
-3. Group commits by type (for grouped format) or list linearly (for flat format)
-4. Write concise, user-friendly descriptions — not raw commit messages
-5. Include short commit hashes for traceability
-6. Prepend the new version section to CHANGELOG.md (after the title line)
+3. **Filter out release commits** — exclude commits matching `chore(release):` to avoid self-referential entries
+4. Group commits by type (for grouped format) or list linearly (for flat format)
+5. Write concise, user-friendly descriptions — not raw commit messages
+6. Include short commit hashes for traceability
+7. Prepend the new version section to CHANGELOG.md (after the title line)
